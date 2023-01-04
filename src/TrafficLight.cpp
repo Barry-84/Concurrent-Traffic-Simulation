@@ -75,7 +75,7 @@ void TrafficLight::cycleThroughPhases()
         if (duration >= distr(eng))
         {
             _currentPhase = (_currentPhase == TrafficLightPhase::green) ? TrafficLightPhase::red : TrafficLightPhase::green;
-            _messageQueue.send(std::move(_currentPhase));
+            //_messageQueue.send(std::move(_currentPhase));
         }
 
         t_start = std::chrono::system_clock::now();
