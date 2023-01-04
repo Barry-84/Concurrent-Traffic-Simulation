@@ -1,6 +1,7 @@
 #include <iostream>
 #include <random>
 #include <chrono>
+#include <thread>
 #include "TrafficLight.h"
 
 /* Implementation of class "MessageQueue" */
@@ -45,6 +46,7 @@ TrafficLightPhase TrafficLight::getCurrentPhase()
 void TrafficLight::simulate()
 {
     // FP.2b : Finally, the private method „cycleThroughPhases“ should be started in a thread when the public method „simulate“ is called. To do this, use the thread queue in the base class. 
+    threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 }
 
 // virtual function which is executed in a thread
@@ -55,21 +57,27 @@ void TrafficLight::cycleThroughPhases()
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
 
-    auto t_start = std::chrono::high_resolution_clock::now();
+    std::chrono::time_point<std::chrono::system_clock> t_start;
+    
+    t_start = std::chrono::system_clock::now();
 
     while (true)
     {
         // wait 1ms between two cycles
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-        auto end = std::chrono::high_resolution_clock::now();
-
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t_start).count();
+        long duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t_start).count();
 
         std::random_device rd;
-        std::mt19937 end(rd());
+        std::mt19937 eng(rd());
         std::uniform_real_distribution<> distr(4000.0, 6000.0);
-        s
+        
+        if (duration >= distr(eng))
+        {
+            _currentPhase = (_currentPhase == TrafficLightPhase::green) ? TrafficLightPhase::red : TrafficLightPhase::green;
+            _messageQueue.send(std::move(_currentPhase));
+        }
 
+        t_start = std::chrono::system_clock::now();
     }
 }
